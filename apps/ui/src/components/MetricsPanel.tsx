@@ -5,16 +5,17 @@
 import { useEffect, useState } from "react";
 import { ApiError, FakzedClient } from "@/lib/api";
 import type { MetricsSummary, RunInfo, TraceInfo } from "@/lib/types";
+import { EmptyState, ErrorBanner, LoadingBlock } from "@/components/feedback";
 
 export default function MetricsPanel({ client }: { client: FakzedClient }) {
   const [summary, setSummary] = useState<MetricsSummary | null>(null);
   const [runs, setRuns] = useState<RunInfo[]>([]);
   const [traces, setTraces] = useState<TraceInfo[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = async () => {
+  const fetchData = async () => {
     try {
-      setError(null);
       const [s, r, t] = await Promise.all([
         client.metricsSummary(),
         client.listRuns(),
@@ -23,13 +24,25 @@ export default function MetricsPanel({ client }: { client: FakzedClient }) {
       setSummary(s);
       setRuns(r);
       setTraces(t);
+      setError(null);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e));
     }
   };
 
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      await fetchData();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    void refresh();
+    void Promise.resolve()
+      .then(fetchData)
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -54,21 +67,28 @@ export default function MetricsPanel({ client }: { client: FakzedClient }) {
         </button>
       </div>
 
-      {error && <div className="text-xs text-red-300">错误：{error}</div>}
+      {error && <ErrorBanner message={error} onRetry={() => void refresh()} />}
 
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
-        {stats.map((stat) => (
-          <div key={stat.label} className="rounded border border-zinc-800 bg-zinc-900/60 p-3">
-            <div className="text-[10px] text-zinc-500">{stat.label}</div>
-            <div className="mt-1 text-lg font-semibold text-zinc-100">{stat.value}</div>
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <LoadingBlock label="正在加载监控数据…" />
+      ) : (
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+          {stats.map((stat) => (
+            <div key={stat.label} className="rounded border border-zinc-800 bg-zinc-900/60 p-3">
+              <div className="text-[10px] text-zinc-500">{stat.label}</div>
+              <div className="mt-1 text-lg font-semibold text-zinc-100">{stat.value}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div>
         <h3 className="mb-2 text-xs font-semibold text-zinc-400">运行列表</h3>
-        <div className="space-y-1">
-          {runs.map((run) => (
+        {loading ? (
+          <LoadingBlock label="正在加载运行记录…" />
+        ) : (
+          <div className="space-y-1">
+            {runs.map((run) => (
             <div
               key={run.run_id}
               className="flex items-center gap-3 rounded border border-zinc-800 bg-zinc-900/40 px-3 py-2 text-xs"
@@ -89,16 +109,20 @@ export default function MetricsPanel({ client }: { client: FakzedClient }) {
               <span className="text-zinc-500">{run.run_id}</span>
             </div>
           ))}
-          {runs.length === 0 && (
-            <div className="text-xs text-zinc-600">暂无运行记录</div>
-          )}
-        </div>
+            {runs.length === 0 && (
+              <EmptyState title="暂无运行记录" hint="通过对话页或后台运行 API 提交任务后会显示在这里。" />
+            )}
+          </div>
+        )}
       </div>
 
       <div>
         <h3 className="mb-2 text-xs font-semibold text-zinc-400">最近 Trace</h3>
-        <div className="space-y-2">
-          {traces.map((trace) => (
+        {loading ? (
+          <LoadingBlock label="正在加载 Trace…" />
+        ) : (
+          <div className="space-y-2">
+            {traces.map((trace) => (
             <details
               key={trace.trace_id}
               className="rounded border border-zinc-800 bg-zinc-900/40 px-3 py-2"
@@ -121,10 +145,11 @@ export default function MetricsPanel({ client }: { client: FakzedClient }) {
               </div>
             </details>
           ))}
-          {traces.length === 0 && (
-            <div className="text-xs text-zinc-600">暂无 trace</div>
-          )}
-        </div>
+            {traces.length === 0 && (
+              <EmptyState title="暂无 trace" hint="Agent 运行时产生的调用链路会显示在这里。" />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

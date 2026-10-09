@@ -6,24 +6,30 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ApiError, FakzedClient } from "@/lib/api";
 import type { SessionInfo } from "@/lib/types";
+import { EmptyState, ErrorBanner, LoadingBlock } from "@/components/feedback";
 
 export default function SessionList({ client }: { client: FakzedClient }) {
   const [sessionId, setSessionId] = useState("");
   const [session, setSession] = useState<SessionInfo | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = async (id: string) => {
     try {
       setError(null);
+      setLoading(true);
       setSession(await client.getSession(id));
     } catch (e) {
       setSession(null);
       setError(e instanceof ApiError ? e.message : String(e));
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (sessionId.trim()) void load(sessionId.trim());
+    const id = sessionId.trim();
+    if (id) void Promise.resolve().then(() => load(id));
   }, [sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -41,7 +47,15 @@ export default function SessionList({ client }: { client: FakzedClient }) {
         </p>
       </div>
 
-      {error && <div className="text-xs text-red-300">错误：{error}</div>}
+      {error && (
+        <ErrorBanner message={error} onRetry={() => sessionId.trim() && void load(sessionId.trim())} />
+      )}
+
+      {loading && <LoadingBlock label="正在加载会话…" />}
+
+      {!loading && sessionId.trim() && !session && !error && (
+        <EmptyState title="未找到该会话" hint="检查会话 ID 是否输入正确。" />
+      )}
 
       {session && (
         <div className="space-y-3">

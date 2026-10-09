@@ -11,6 +11,7 @@ import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { ApiError, FakzedClient } from "@/lib/api";
 import type { ChatEvent } from "@/lib/types";
+import { ErrorBanner, TypingDots } from "@/components/feedback";
 
 interface ToolStep {
   name: string;
@@ -26,6 +27,7 @@ interface Message {
 export default function ChatPanel({ client }: { client: FakzedClient }) {
   const searchParams = useSearchParams();
   const [agents, setAgents] = useState<{ name: string }[]>([]);
+  const [agentsLoading, setAgentsLoading] = useState(true);
   const [agent, setAgent] = useState("");
   const [sessionId, setSessionId] = useState(searchParams.get("session") ?? "");
   const [input, setInput] = useState("");
@@ -42,7 +44,8 @@ export default function ChatPanel({ client }: { client: FakzedClient }) {
         setAgents(list);
         if (list.length > 0 && !agent) setAgent(list[0].name);
       })
-      .catch((e) => setError(e instanceof ApiError ? e.message : String(e)));
+      .catch((e) => setError(e instanceof ApiError ? e.message : String(e)))
+      .finally(() => setAgentsLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -96,6 +99,8 @@ export default function ChatPanel({ client }: { client: FakzedClient }) {
         patchAssistant({ content: assistant.content || "（已中断）" });
       } else {
         setError(e instanceof ApiError ? e.message : String(e));
+        // put the message back so the user can retry without retyping
+        setInput(text);
       }
     } finally {
       abortRef.current = null;
@@ -114,7 +119,8 @@ export default function ChatPanel({ client }: { client: FakzedClient }) {
           onChange={(e) => setAgent(e.target.value)}
           className="rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-xs text-zinc-200 outline-none"
         >
-          {agents.length === 0 && <option value="">（无 Agent）</option>}
+          {agentsLoading && <option value="">（加载中…）</option>}
+          {!agentsLoading && agents.length === 0 && <option value="">（无 Agent）</option>}
           {agents.map((a) => (
             <option key={a.name} value={a.name}>
               {a.name}
@@ -165,7 +171,7 @@ export default function ChatPanel({ client }: { client: FakzedClient }) {
                     </div>
                   )}
                   <div className="prose prose-invert prose-sm max-w-none prose-p:my-1 prose-pre:my-1">
-                    <ReactMarkdown>{message.content || "…"}</ReactMarkdown>
+                    {message.content ? <ReactMarkdown>{message.content}</ReactMarkdown> : streaming ? <TypingDots /> : "…"}
                   </div>
                 </>
               )}
@@ -176,7 +182,9 @@ export default function ChatPanel({ client }: { client: FakzedClient }) {
       </div>
 
       {error && (
-        <div className="px-4 pb-2 text-xs text-red-300">错误：{error}</div>
+        <div className="px-4 pb-2">
+          <ErrorBanner message={error} />
+        </div>
       )}
 
       {/* composer */}
@@ -191,7 +199,13 @@ export default function ChatPanel({ client }: { client: FakzedClient }) {
             }
           }}
           rows={2}
-          placeholder="输入消息，Enter 发送，Shift+Enter 换行"
+          placeholder={
+            agentsLoading
+              ? "正在连接平台…"
+              : agent
+                ? "输入消息，Enter 发送，Shift+Enter 换行"
+                : "请先在 Agent 管理页注册一个 Agent"
+          }
           className="flex-1 resize-none rounded border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 outline-none focus:border-zinc-500"
         />
         {streaming ? (

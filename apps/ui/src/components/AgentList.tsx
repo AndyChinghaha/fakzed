@@ -6,25 +6,40 @@ import { useEffect, useState } from "react";
 import { ApiError, FakzedClient } from "@/lib/api";
 import { useSettings } from "@/lib/store";
 import type { AgentInfo } from "@/lib/types";
+import { EmptyState, ErrorBanner, LoadingBlock, Spinner } from "@/components/feedback";
 
 export default function AgentList({ client }: { client: FakzedClient }) {
   const { settings } = useSettings();
   const [agents, setAgents] = useState<AgentInfo[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ name: "", model: "", description: "", instructions: "" });
 
-  const refresh = async () => {
+  const fetchAgents = async () => {
     try {
+      const list = await client.listAgents();
+      setAgents(list);
       setError(null);
-      setAgents(await client.listAgents());
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e));
     }
   };
 
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      await fetchAgents();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    void refresh();
+    void Promise.resolve()
+      .then(fetchAgents)
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.baseUrl, settings.apiKey]);
 
@@ -40,6 +55,7 @@ export default function AgentList({ client }: { client: FakzedClient }) {
   const create = async () => {
     try {
       setError(null);
+      setSubmitting(true);
       await client.createAgent({
         name: form.name,
         model: form.model,
@@ -51,6 +67,8 @@ export default function AgentList({ client }: { client: FakzedClient }) {
       await refresh();
     } catch (e) {
       setError(e instanceof ApiError ? e.message : String(e));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -68,11 +86,7 @@ export default function AgentList({ client }: { client: FakzedClient }) {
         </button>
       </div>
 
-      {error && (
-        <div className="rounded border border-red-900 bg-red-950/40 px-3 py-2 text-xs text-red-300">
-          {error}
-        </div>
-      )}
+      {error && <ErrorBanner message={error} onRetry={() => void refresh()} />}
 
       {creating && (
         <div className="rounded border border-zinc-800 bg-zinc-900/60 p-3 space-y-2">
@@ -103,16 +117,22 @@ export default function AgentList({ client }: { client: FakzedClient }) {
           />
           <button
             onClick={() => void create()}
-            disabled={!form.name || !form.model}
-            className="rounded bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-900 hover:bg-white disabled:opacity-40"
+            disabled={!form.name || !form.model || submitting}
+            className="flex items-center justify-center gap-2 rounded bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-900 hover:bg-white disabled:opacity-40"
           >
-            注册到平台
+            {submitting && <Spinner className="h-3 w-3 border-zinc-400 border-t-zinc-900" />}
+            {submitting ? "注册中…" : "注册到平台"}
           </button>
         </div>
       )}
 
       <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-        {agents.map((agent) => (
+        {loading ? (
+          <div className="col-span-full">
+            <LoadingBlock label="正在加载 Agent 列表…" />
+          </div>
+        ) : (
+          agents.map((agent) => (
           <div
             key={agent.name}
             className="rounded border border-zinc-800 bg-zinc-900/60 p-3 space-y-2"
@@ -143,11 +163,13 @@ export default function AgentList({ client }: { client: FakzedClient }) {
               {agent.enabled ? "停用" : "启用"}
             </button>
           </div>
-        ))}
-        {agents.length === 0 && !error && (
-          <div className="text-xs text-zinc-500 col-span-full">
-            还没有 Agent。启动 fakzed-server 并在代码中 server.register(...)，或点「创建 Agent」。
-          </div>
+          ))
+        )}
+        {!loading && agents.length === 0 && !error && (
+          <EmptyState
+            title="还没有 Agent"
+            hint="启动 fakzed-server 并在代码中 server.register(...)，或点「创建 Agent」。"
+          />
         )}
       </div>
     </div>

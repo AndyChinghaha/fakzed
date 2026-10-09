@@ -17,6 +17,13 @@ All notable changes to fakzed are documented in this file.
 - **CORS control**: `cors_origins` option / `--cors-origins` CLI flag to restrict allowed origins (still `*` by default for dev)
 - **Key hardening**: `/api/keys` rejects unknown roles; the bootstrap admin key seeds exactly one record; `FAKZED_ADMIN_KEY` env var supported
 
+### Web console (`apps/ui`)
+
+- Loading states (spinner blocks) on agent list, monitoring, sessions, and chat bootstrap
+- Unified `ErrorBanner` with retry actions, `EmptyState` and `TypingDots` primitives
+- Chat: typing indicator while streaming, failed sends restore the input, platform-connection placeholders
+- Settings load from localStorage via lazy initializer (no flash of defaults)
+
 ### Engineering
 
 - 315 tests, 97% coverage across both libraries

@@ -2,7 +2,7 @@
 
 /** Server connection settings persisted in localStorage. */
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
 export interface ServerSettings {
   baseUrl: string;
@@ -37,11 +37,7 @@ const SettingsContext = createContext<{
 }>({ settings: DEFAULT_SETTINGS, setSettings: () => undefined });
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettingsState] = useState<ServerSettings>(DEFAULT_SETTINGS);
-
-  useEffect(() => {
-    setSettingsState(loadSettings());
-  }, []);
+  const [settings, setSettingsState] = useState<ServerSettings>(() => loadSettings());
 
   const setSettings = (next: ServerSettings) => {
     setSettingsState(next);
