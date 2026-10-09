@@ -1,5 +1,9 @@
 # fakzed
 
+[![PyPI version](https://img.shields.io/pypi/v/fakzed)](https://pypi.org/project/fakzed/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 > A lightweight Python framework for building agent platforms.
 > Named after Faker's legendary Zed outplay.
 
