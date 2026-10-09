@@ -119,6 +119,7 @@ class Agent(BaseModel):
     _iterations_count: int = PrivateAttr(default=0)
     _current_span: TraceSpan | None = PrivateAttr(default=None)
     _current_metrics: RunMetrics | None = PrivateAttr(default=None)
+    _state_tools_cache: list[Tool] | None = PrivateAttr(default=None)
 
     #: Messages accumulated across runs; fed back when add_history_to_context.
     session_messages: list[Message] = Field(default_factory=list, exclude=True)
@@ -149,20 +150,26 @@ class Agent(BaseModel):
         return tools
 
     def get_state_tools(self) -> list[Tool]:
-        """Tools letting the model read and write the agent state."""
+        """Tools letting the model read and write the agent state.
 
-        @tool
-        def get_agent_state() -> str:
-            """Get the current agent state as JSON."""
-            return json.dumps(self.agent_state, ensure_ascii=False, default=str)
+        Built lazily and cached: the closures reference `self` (not copied
+        values), so the cache stays valid for the agent's lifetime.
+        """
+        if self._state_tools_cache is None:
 
-        @tool
-        def update_agent_state(state: dict[str, Any]) -> str:
-            """Merge the given key-values into the agent state."""
-            self.agent_state.update(state)
-            return "Agent state updated."
+            @tool
+            def get_agent_state() -> str:
+                """Get the current agent state as JSON."""
+                return json.dumps(self.agent_state, ensure_ascii=False, default=str)
 
-        return [get_agent_state, update_agent_state]
+            @tool
+            def update_agent_state(state: dict[str, Any]) -> str:
+                """Merge the given key-values into the agent state."""
+                self.agent_state.update(state)
+                return "Agent state updated."
+
+            self._state_tools_cache = [get_agent_state, update_agent_state]
+        return self._state_tools_cache
 
     def update_state(self, **kwargs: Any) -> None:
         """Merge key-values into the agent state (persisted with the session)."""
