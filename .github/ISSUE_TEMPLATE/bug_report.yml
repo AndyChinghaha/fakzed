@@ -1,0 +1,47 @@
+name: Bug Report
+description: 报告一个 bug，帮助 fakzed 变得更好
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢花时间报告问题！提交前请确认没有重复的 Issue。
+  - type: input
+    id: version
+    attributes:
+      label: fakzed 版本
+      description: "`python -c \"import fakzed; print(fakzed.__version__)\"` 的输出"
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 环境信息
+      description: Python 版本、操作系统、provider（deepseek/openai/...）等
+      placeholder: "Python 3.12, Windows 11, deepseek"
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 复现步骤
+      description: 最小可复现代码或步骤
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 完整报错信息或 traceback
+      render: text
+    validations:
+      required: true
