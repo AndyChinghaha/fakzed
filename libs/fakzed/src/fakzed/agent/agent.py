@@ -20,8 +20,18 @@ from fakzed.hooks import Hooks
 from fakzed.hooks import fire as fire_hooks
 from fakzed.knowledge import KnowledgeBase
 from fakzed.memory import AgenticMemory
-from fakzed.model import Message, Model, ModelResponse, ToolCall, ToolResult, Usage, create_model
+from fakzed.model import (
+    Message,
+    Model,
+    ModelResponse,
+    ToolCall,
+    ToolResult,
+    Usage,
+    create_model,
+    parse_model_id,
+)
 from fakzed.model.base import ResponseFormat
+from fakzed.model.pricing import estimate_cost, merge_usage
 from fakzed.model.tool import Tool as ModelTool
 from fakzed.observability import RunEvent, RunMetrics, RunObserver, TraceSpan
 from fakzed.session import Session
@@ -121,6 +131,9 @@ class Agent(BaseModel):
     _current_metrics: RunMetrics | None = PrivateAttr(default=None)
     _state_tools_cache: list[Tool] | None = PrivateAttr(default=None)
 
+    #: Cumulative token usage across all runs of this agent instance.
+    _total_usage: Usage | None = PrivateAttr(default=None)
+
     #: Messages accumulated across runs; fed back when add_history_to_context.
     session_messages: list[Message] = Field(default_factory=list, exclude=True)
 
@@ -133,6 +146,42 @@ class Agent(BaseModel):
         if isinstance(self.model, str):
             return create_model(self.model)
         raise ValueError("Agent.model must be a Model instance or a 'provider:model' string")
+
+    @property
+    def total_usage(self) -> Usage:
+        """Cumulative token usage across all runs of this agent instance."""
+        return self._total_usage or Usage()
+
+    @property
+    def total_cost(self) -> float:
+        """Estimated cumulative cost in USD, from `MODEL_PRICING`.
+
+        Models without a pricing entry contribute 0.0.
+        """
+        return self._estimate_cost(self._total_usage)
+
+    def reset_usage(self) -> None:
+        """Reset the cumulative usage and cost counters."""
+        self._total_usage = None
+
+    def _model_id_for_pricing(self) -> str | None:
+        """Resolve the bare model id for pricing lookup; None when unavailable."""
+        if self.model is None:
+            return None
+        try:
+            if isinstance(self.model, str):
+                return parse_model_id(self.model)[1]
+            return self.model.id
+        except ValueError:
+            return None
+
+    def _estimate_cost(self, usage: Usage | None) -> float:
+        if usage is None:
+            return 0.0
+        model_id = self._model_id_for_pricing()
+        if model_id is None:
+            return 0.0
+        return estimate_cost(model_id, usage) or 0.0
 
     def _tool_map(self) -> dict[str, Tool]:
         return {tool.name: tool for tool in self._all_tools()}
@@ -410,6 +459,7 @@ class Agent(BaseModel):
         self, messages: list[Message], response: ModelResponse, usage: Usage | None
     ) -> RunResponse:
         """Record the final answer, persist the session, and build the response."""
+        self._total_usage = merge_usage([self._total_usage, usage])
         messages.append(
             Message(
                 role="assistant",
@@ -567,6 +617,7 @@ class Agent(BaseModel):
         if self._current_metrics is not None and observer.metrics is not None:
             self._current_metrics.ended_at = time.time()
             self._current_metrics.absorb_usage(response.usage)
+            self._current_metrics.cost_usd = self._estimate_cost(response.usage)
             self._current_metrics.tool_calls = self._tool_call_count
             self._current_metrics.iterations = self._iterations_count
             observer.metrics.record(self._current_metrics)
@@ -696,8 +747,7 @@ class Agent(BaseModel):
         for iteration in range(start, self.max_iterations):
             self._iterations_count = iteration + 1
             response = model.response(messages, tools=model_tools, response_format=response_format)
-            if usage is None:
-                usage = response.usage
+            usage = merge_usage([usage, response.usage])
             if not response.tool_calls:
                 feedback = self._check_output_guardrails(response.content)
                 if feedback is not None and output_retries < max_output_retries:
@@ -783,8 +833,7 @@ class Agent(BaseModel):
                     )
             if final is None:
                 return
-            if usage is None:
-                usage = final.usage
+            usage = merge_usage([usage, final.usage])
             if not final.tool_calls:
                 feedback = self._check_output_guardrails(final.content)
                 if feedback is not None and output_retries < max_output_retries:
@@ -945,8 +994,7 @@ class Agent(BaseModel):
                     )
             if final is None:
                 return
-            if usage is None:
-                usage = final.usage
+            usage = merge_usage([usage, final.usage])
             if not final.tool_calls:
                 feedback = self._check_output_guardrails(final.content)
                 if feedback is not None and output_retries < max_output_retries:

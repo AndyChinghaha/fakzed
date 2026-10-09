@@ -2,6 +2,19 @@
 
 All notable changes to fakzed are documented in this file.
 
+## [Unreleased]
+
+### SDK (`fakzed`)
+
+- **Token usage tracking**: cumulative `Agent.total_usage` / `Agent.total_cost` across runs, `reset_usage()`; per-run usage now sums every model call (multi-iteration tool loops included), not just the first
+- **Cost estimation**: `fakzed.model.pricing` with a reference `MODEL_PRICING` table (DeepSeek / OpenAI / Anthropic / local), `estimate_cost`, `find_price` (family-prefix matching), and `merge_usage`; `RunMetrics.cost_usd` is populated automatically
+- **Performance**: state tools are built once and cached (lazy `get_state_tools`), ~23x faster single-turn `agent.run`
+- **Robustness**: fixed a crash in the Ollama adapter's JSON fallback for malformed tool-call arguments
+
+### Engineering
+
+- 302 tests, 97% coverage across both libraries
+
 ## [0.1.0] - 2026-10-09
 
 First release: SDK + platform server + web console.

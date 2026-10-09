@@ -13,6 +13,7 @@ Usage:
 from fakzed.model.base import Model
 from fakzed.model.factory import create_model, parse_model_id
 from fakzed.model.message import Attachment, Message, MessageRole, ToolCall, ToolResult
+from fakzed.model.pricing import MODEL_PRICING, estimate_cost, find_price, merge_usage
 from fakzed.model.registry import get_model_class, register_model, registered_providers
 from fakzed.model.response import ModelResponse, Usage
 from fakzed.model.tool import Tool
@@ -32,4 +33,8 @@ __all__ = [
     "ModelResponse",
     "Usage",
     "Tool",
+    "MODEL_PRICING",
+    "estimate_cost",
+    "find_price",
+    "merge_usage",
 ]
