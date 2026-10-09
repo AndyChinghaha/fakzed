@@ -217,7 +217,7 @@ class OllamaChat(Model):
                         try:
                             acc["arguments"].update(json.loads(function.arguments))
                         except json.JSONDecodeError:
-                            acc["arguments"] = function.arguments
+                            acc["arguments"] = {"raw": function.arguments}
 
             if parsed.content or parsed.reasoning_content:
                 yield parsed
@@ -312,7 +312,7 @@ class OllamaChat(Model):
                         try:
                             acc["arguments"].update(json.loads(function.arguments))
                         except json.JSONDecodeError:
-                            acc["arguments"] = function.arguments
+                            acc["arguments"] = {"raw": function.arguments}
 
             if parsed.content or parsed.reasoning_content:
                 yield parsed
