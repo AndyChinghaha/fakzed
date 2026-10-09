@@ -35,10 +35,10 @@ kb = KnowledgeBase(
     embedder=HashEmbedder(),  # local hash embedding, no key needed
     vector_db=InMemoryVectorDb(),
 )
-kb.add_text("fakzed 是一个轻量级 Agent 框架，模仿 agno 架构，核心是 Agent/Team/Workflow 三个原语。")
+kb.add_text("fakzed 是一个轻量级 Agent 框架，核心是 Agent/Team/Workflow 三个原语。")
 kb.add_text("fakzed 平台层叫 fakzed-server，提供 REST + SSE 接口和 Web 控制台。")
 
-kb_model = scripted("fakzed 是模仿 agno 架构的轻量级 Agent 框架。")
+kb_model = scripted("fakzed 是核心精简、能力插件化的轻量级 Agent 框架。")
 rag_agent = Agent(
     name="kb-bot",
     model=kb_model,

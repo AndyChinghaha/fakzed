@@ -3,7 +3,7 @@
 > A lightweight Python framework for building agent platforms.
 > Named after Faker's legendary Zed outplay.
 
-**fakzed** 是一个模仿 [agno](https://github.com/agno-agi/agno) 架构、从零构建的 Agent 开发框架：核心精简，能力插件化，SDK 与平台共享同一套注册机制。三个原语（`Agent` / `Team` / `Workflow`）加一套可插拔能力（模型、工具、记忆、知识、护栏、Hooks、可观测性），十分钟内跑通第一个 Agent，一天内部署成平台。
+**fakzed** 是一个轻量级 Agent 开发框架：核心精简，能力插件化，SDK 与平台共享同一套注册机制。三个原语（`Agent` / `Team` / `Workflow`）加一套可插拔能力（模型、工具、记忆、知识、护栏、Hooks、可观测性），十分钟内跑通第一个 Agent，一天内部署成平台。
 
 ## 特性
 
