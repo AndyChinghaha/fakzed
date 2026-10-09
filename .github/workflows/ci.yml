@@ -18,7 +18,9 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: uv sync --all-extras
+        # --all-packages keeps every workspace member installed; without it,
+        # `--all-extras` alone drops fakzed-server and breaks the test job.
+        run: uv sync --all-packages --all-extras
 
       - name: Lint
         run: |
@@ -47,7 +49,7 @@ jobs:
           cache-dependency-path: apps/ui/package-lock.json
 
       - name: Install
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Build
         run: npm run build
