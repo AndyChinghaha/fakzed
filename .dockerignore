@@ -1,0 +1,40 @@
+# Python
+__pycache__
+*.py[cod]
+.venv
+dist
+build
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+
+# Node
+node_modules
+.next
+apps/ui/out
+
+# Editor / OS
+.vscode
+.idea
+.git
+.gitignore
+Thumbs.db
+
+# Docs & examples not needed inside images
+docs
+cookbook
+scripts
+note.md
+CHANGELOG.md
+README.md
+.github
+
+# Docker build context
+Dockerfile
+docker-compose.yml
+.dockerignore
+apps/ui/Dockerfile
+apps/ui/.dockerignore

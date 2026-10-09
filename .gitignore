@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# uv / virtualenv
+.venv/
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+
+# Node / web UI
+node_modules/
+.next/
+apps/ui/out/
+
+# fakzed runtime data (API-key hashes, sessions, runs)
+fakzed_server.json
+*.db
+*.sqlite3
+
+# Local dev notes (contain secrets / working log)
+note.md

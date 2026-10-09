@@ -1,0 +1,35 @@
+# fakzed one-command deployment: platform server + web console.
+#
+#   docker compose up --build
+#   -> console  http://localhost:3000
+#   -> server   http://localhost:8000  (admin API key: fz_admin_key)
+#
+# Data persists in the `fakzed-data` named volume.
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    command: >
+      /app/.venv/bin/fakzed-server
+      --host 0.0.0.0 --port 8000
+      --db /data/fakzed_server.json
+      --admin-key ${FAKZED_ADMIN_KEY:-fz_admin_key}
+    volumes:
+      - fakzed-data:/data
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: apps/ui
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  fakzed-data:
