@@ -16,7 +16,7 @@
 - **可插拔能力**：`@tool` 工具（含内置 6 件套 + MCP 客户端）、AgenticMemory 用户记忆、Knowledge RAG（Embedder + VectorDb + KnowledgeBase）、Skills、ContextProvider、权限回调
 - **控制与安全**：输入/输出 Guardrails、生命周期 Hooks、Human-in-the-Loop（`stop_after_tool_call` + `resume`）
 - **运维能力**：事件总线、Trace 追踪、RunMetrics 指标、Token 用量统计与成本追踪（`total_usage` / `total_cost`）、Evals 评估框架、BackgroundRunner 后台执行、Scheduler 调度器
-- **平台层**：`fakzed-server`（FastAPI：注册中心 / REST + SSE / API Key 认证 / 多租户 / 持久化 / 监控 API）+ `RemoteAgent`（SDK 远程调用同构接口）+ Next.js Web 控制台
+- **平台层**：`fakzed-server`（FastAPI：注册中心 / REST + SSE / API Key 认证 / 限流 / 多租户 / 持久化 / 监控 API）+ `RemoteAgent`（SDK 远程调用同构接口）+ Next.js Web 控制台
 
 ## 仓库结构
 
@@ -60,6 +60,9 @@ agent.print_response("用一句话介绍你自己")
 # 启动平台（SDK 注册机制与平台共享）
 fakzed-server --admin-key my-admin-key          # http://127.0.0.1:8000
 
+# 生产建议：限制 CORS 来源、调整限流（默认 300 请求/分钟/密钥，0 关闭）
+fakzed-server --cors-origins https://ui.example.com --rate-limit 300
+
 # SDK 侧像调用本地 Agent 一样调用远端 Agent
 from fakzed import RemoteAgent
 
@@ -83,7 +86,7 @@ Web 控制台：`docker compose up -d` 一键启动平台 + UI（见 [Docker](#d
 
 ```bash
 uv sync --all-packages      # 安装 workspace + dev 依赖
-uv run pytest               # 302 测试
+uv run pytest               # 315 测试
 uv run ruff check libs      # lint
 uv run mypy libs/fakzed/src libs/fakzed-server/src   # 类型检查
 ```

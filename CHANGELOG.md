@@ -11,9 +11,15 @@ All notable changes to fakzed are documented in this file.
 - **Performance**: state tools are built once and cached (lazy `get_state_tools`), ~23x faster single-turn `agent.run`
 - **Robustness**: fixed a crash in the Ollama adapter's JSON fallback for malformed tool-call arguments
 
+### Platform (`fakzed-server`)
+
+- **Rate limiting**: sliding-window limiter (default 300 req/min per API key or client IP, configurable via `rate_limit_per_minute` / `--rate-limit`), 429 with `Retry-After`; `/healthz` exempt
+- **CORS control**: `cors_origins` option / `--cors-origins` CLI flag to restrict allowed origins (still `*` by default for dev)
+- **Key hardening**: `/api/keys` rejects unknown roles; the bootstrap admin key seeds exactly one record; `FAKZED_ADMIN_KEY` env var supported
+
 ### Engineering
 
-- 302 tests, 97% coverage across both libraries
+- 315 tests, 97% coverage across both libraries
 
 ## [0.1.0] - 2026-10-09
 

@@ -28,6 +28,7 @@ from fakzed.storage import Storage
 from fakzed_server.auth import ApiKeyStore, Principal
 from fakzed_server.monitoring import MonitoringStore
 from fakzed_server.persistence import JsonStore
+from fakzed_server.ratelimit import RateLimiter, RateLimitMiddleware
 from fakzed_server.registry import AgentRegistry, Registered
 from fakzed_server.runs import RunManager
 from fakzed_server.tenancy import TenantStore
@@ -95,6 +96,8 @@ class FakzedServer:
         auth_enabled: bool = True,
         admin_api_key: str | None = None,
         storage: Storage | None = None,
+        cors_origins: list[str] | None = None,
+        rate_limit_per_minute: int | None = 300,
     ) -> None:
         self.registry = AgentRegistry()
         self.tenants = TenantStore()
@@ -107,14 +110,19 @@ class FakzedServer:
         self.storage = storage
 
         if auth_enabled and admin_api_key:
-            self.auth.issue(name="bootstrap-admin", user_id="admin", role="admin")
-            # seed the caller-provided key with admin role (hash only)
             self._seed_key(admin_api_key, "bootstrap-admin", "admin")
 
         self.app = FastAPI(title=title)
+        # Rate limiting first: it should run before any route logic.
+        if rate_limit_per_minute is not None:
+            self.app.add_middleware(
+                RateLimitMiddleware, limiter=RateLimiter(requests_per_minute=rate_limit_per_minute)
+            )
         self.app.add_middleware(
             CORSMiddleware,
-            allow_origins=["*"],  # web UI runs on a different origin in dev
+            # "*" keeps the dev web UI working out of the box; production
+            # deployments should pass explicit `cors_origins` instead.
+            allow_origins=cors_origins or ["*"],
             allow_credentials=False,
             allow_methods=["*"],
             allow_headers=["*"],
@@ -124,6 +132,7 @@ class FakzedServer:
     # -- setup helpers --------------------------------------------------------
 
     def _seed_key(self, raw: str, name: str, user_id: str) -> None:
+        """Seed the caller-provided bootstrap key with admin role (hash only)."""
         from fakzed_server.auth import ApiKey, hash_key
 
         key_hash = hash_key(raw)
@@ -414,6 +423,8 @@ class FakzedServer:
             request: KeyRequest,
             principal: Principal = Depends(self._require_admin),
         ) -> dict[str, Any]:
+            if request.role not in ("user", "admin"):
+                raise HTTPException(status_code=400, detail="role must be 'user' or 'admin'")
             user_id = request.user_id or principal.user_id
             raw, record = self.auth.issue(name=request.name, user_id=user_id, role=request.role)
             payload = record.model_dump(exclude={"key_hash"})
