@@ -1,6 +1,6 @@
 [project]
 name = "fakzed"
-version = "0.1.0"
+version = "0.2.0"
 description = "Fakzed: a lightweight Python framework for building agent platforms. Three primitives (Agent, Team, Workflow) with pluggable capabilities."
 readme = "README.md"
 requires-python = ">=3.10"

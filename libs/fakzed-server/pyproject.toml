@@ -1,6 +1,6 @@
 [project]
 name = "fakzed-server"
-version = "0.1.0"
+version = "0.2.0"
 description = "Fakzed platform server: agent registry, REST/SSE API, auth, multi-tenancy, run management."
 readme = "README.md"
 requires-python = ">=3.10"

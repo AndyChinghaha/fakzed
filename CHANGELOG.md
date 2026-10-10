@@ -2,7 +2,7 @@
 
 All notable changes to fakzed are documented in this file.
 
-## [Unreleased]
+## [0.2.0] - 2026-10-10
 
 ### SDK (`fakzed`)
 
@@ -27,6 +27,7 @@ All notable changes to fakzed are documented in this file.
 ### Engineering
 
 - 315 tests, 97% coverage across both libraries
+- Green CI on GitHub Actions (workspace sync fixed, Node 24 actions, Linux lockfile entries); tag-driven automated releases to PyPI
 
 ## [0.1.0] - 2026-10-09
 

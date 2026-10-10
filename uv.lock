@@ -503,7 +503,7 @@ wheels = [
 
 [[package]]
 name = "fakzed"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "libs/fakzed" }
 dependencies = [
     { name = "mcp" },
@@ -543,7 +543,7 @@ provides-extras = ["openai", "anthropic", "ollama", "deepseek", "sqlite"]
 
 [[package]]
 name = "fakzed-server"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "libs/fakzed-server" }
 dependencies = [
     { name = "fakzed" },

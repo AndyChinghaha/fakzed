@@ -1,0 +1,53 @@
+name: Release
+
+# Pushing a `v*` tag (e.g. v0.3.0) builds and publishes both packages to PyPI
+# and creates a GitHub Release. The tag must match the version fields in
+# libs/fakzed/pyproject.toml and libs/fakzed-server/pyproject.toml exactly.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write # create the GitHub Release
+  id-token: write # PyPI trusted publishing (OIDC)
+
+jobs:
+  release:
+    name: build & publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+
+      - name: Verify tag matches package versions
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          for p in libs/fakzed libs/fakzed-server; do
+            VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' "$p/pyproject.toml")
+            if [ "$VERSION" != "$TAG" ]; then
+              echo "::error::$p version $VERSION does not match tag $GITHUB_REF_NAME"
+              exit 1
+            fi
+          done
+
+      - name: Build distributions
+        run: |
+          uv build --package fakzed
+          uv build --package fakzed-server
+
+      # Requires PyPI trusted publishing to be configured for both projects
+      # (https://docs.pypi.org/trusted-publishers/). No token is stored here.
+      - name: Publish fakzed to PyPI
+        run: uv publish --publish-url https://upload.pypi.org/legacy/ libs/fakzed/dist/
+
+      - name: Publish fakzed-server to PyPI
+        run: uv publish --publish-url https://upload.pypi.org/legacy/ libs/fakzed-server/dist/
+
+      - name: Create GitHub Release
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes --title "$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ github.token }}
