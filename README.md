@@ -18,6 +18,22 @@
 - **运维能力**：事件总线、Trace 追踪、RunMetrics 指标、Token 用量统计与成本追踪（`total_usage` / `total_cost`）、Evals 评估框架、BackgroundRunner 后台执行、Scheduler 调度器
 - **平台层**：`fakzed-server`（FastAPI：注册中心 / REST + SSE / API Key 认证 / 限流 / 多租户 / 持久化 / 监控 API）+ `RemoteAgent`（SDK 远程调用同构接口）+ Next.js Web 控制台
 
+## 基准对比（vs LangGraph）
+
+同机实测（Python 3.12.8 / Windows / fakzed 0.2.0 / langgraph 1.2.14 + langchain 1.4.4），完整脚本见 [`scripts/benchmarks/compare_langgraph.py`](scripts/benchmarks/compare_langgraph.py)，任何人可复现：
+
+| 指标 | fakzed | LangGraph | 倍数 |
+| --- | --- | --- | --- |
+| Agent 实例化 | 6.0 µs | 1,093.5 µs | **182x** |
+| 单轮工具调用循环（含构建） | 1.27 ms | 4.03 ms | **3.2x** |
+| 最小可用 import | 302 ms | 982 ms | **3.2x** |
+| 框架源码行数 | 5,726 行 | 54,679 行 | **9.5x 更少** |
+| 核心依赖数 | 3 个 | 23 个 | **7.7x 更少** |
+
+口径说明：实例化 = `Agent(model="openai:gpt-4o-mini")` vs `create_agent("openai:gpt-4o-mini")`；工具循环 = 假模型脚本化一轮 tool call + 最终回复；import = 用户真实最小导入（`import fakzed` vs `from langchain.agents import create_agent`）。
+
+> 这是**微观基准**：模型网络耗时远大于框架开销，绝对差异很小。框架选型还取决于生态、durable execution 等生产能力——fakzed 的价值主张是**轻量、可读、开箱即用**，不是替代 LangGraph 的复杂编排能力。
+
 ## 仓库结构
 
 ```
