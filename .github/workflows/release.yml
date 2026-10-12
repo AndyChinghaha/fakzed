@@ -35,19 +35,19 @@ jobs:
           done
 
       - name: Build distributions
-        # --out-dir is required: uv build --package in a workspace root
-        # otherwise emits everything into the root dist/ directory.
+        # uv builds workspace members into the workspace root dist/ directory.
         run: |
-          uv build --package fakzed --out-dir libs/fakzed/dist
-          uv build --package fakzed-server --out-dir libs/fakzed-server/dist
+          uv build --package fakzed
+          uv build --package fakzed-server
+          ls -la dist/
 
       # Requires PyPI trusted publishing to be configured for both projects
       # (https://docs.pypi.org/trusted-publishers/). No token is stored here.
       - name: Publish fakzed to PyPI
-        run: uv publish --publish-url https://upload.pypi.org/legacy/ libs/fakzed/dist/
+        run: uv publish --publish-url https://upload.pypi.org/legacy/ dist/fakzed-*
 
       - name: Publish fakzed-server to PyPI
-        run: uv publish --publish-url https://upload.pypi.org/legacy/ libs/fakzed-server/dist/
+        run: uv publish --publish-url https://upload.pypi.org/legacy/ dist/fakzed_server-*
 
       - name: Create GitHub Release
         run: gh release create "$GITHUB_REF_NAME" --generate-notes --title "$GITHUB_REF_NAME"
