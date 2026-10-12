@@ -1,10 +1,10 @@
 """Smoke test: verify the package is importable and versioned."""
 
-import tomllib
 from pathlib import Path
 
-from fakzed import __version__
+import tomllib
 
+from fakzed import __version__
 
 # libs/fakzed/tests/test_smoke.py -> libs/fakzed/pyproject.toml
 _PYPROJECT = Path(__file__).resolve().parents[1] / "pyproject.toml"
