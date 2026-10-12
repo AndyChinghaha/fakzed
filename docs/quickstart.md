@@ -50,8 +50,9 @@ agent = Agent(model=DeepSeekChat(id="deepseek-chat"))
 #    Anthropic → ANTHROPIC_API_KEY；Ollama → 本地 11434 端口
 ```
 
-> **没有 API Key 也能跑**：测试与 Cookbook 使用内置 `FakeModel`（脚本式模型），
-> 见 `cookbook/` 目录，所有示例开箱即跑。
+> **没有 API Key 也能跑**：Cookbook 示例使用 `ScriptedModel`（脚本式假模型，
+> 见 `cookbook/_cookbook_utils.py`），答案预设、零网络请求，所有示例开箱即跑；
+> 换成 `model = "deepseek:deepseek-chat"` 即接真实模型（读 DEEPSEEK_API_KEY）。
 
 ## 3. 第一个 Agent
 
