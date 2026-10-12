@@ -222,10 +222,12 @@ scheduler.remove_job(job_id)
 ```python
 from fakzed import Skill
 
+
 @tool
 def search_case_law(keyword: str) -> str:
     """在判例库中搜索关键词。"""
     ...
+
 
 skill = Skill(
     name="legal-review",
