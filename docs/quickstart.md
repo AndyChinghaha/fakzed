@@ -8,7 +8,7 @@ fakzed 以 uv workspace 组织，SDK 包名是 `fakzed`：
 # uv 用户
 uv add fakzed
 
-# pip 用户（发布后）
+# pip 用户
 pip install fakzed
 ```
 
