@@ -187,8 +187,10 @@ class Agent(BaseModel):
         return {tool.name: tool for tool in self._all_tools()}
 
     def _all_tools(self) -> list[Tool]:
-        """Own tools, toolkit tools, transfer tools, memory tools, state tools."""
+        """Own tools, skill tools, toolkit tools, transfer tools, memory tools, state tools."""
         tools = [*(self.tools or [])]
+        for skill in self.skills or []:
+            tools.extend(skill.tools)
         for toolkit in self.toolkits or []:
             tools.extend(toolkit.get_tools())
         tools.extend(self.get_transfer_tools() or [])
@@ -298,7 +300,7 @@ class Agent(BaseModel):
                 else "\n".join(self.instructions)
             )
             parts.append(self._render_template(instructions, context))
-        if self.tools or self.team or self.toolkits:
+        if self.tools or self.team or self.toolkits or any(s.tools for s in self.skills or []):
             parts.append("You have access to tools. Use them when they help complete the task.")
         if self.team:
             roster = "\n".join(
@@ -311,7 +313,13 @@ class Agent(BaseModel):
                 "transfer_to_* tools. Members:\n" + roster
             )
         if self.skills:
-            skill_blocks = [f"## {skill.name}\n{skill.instructions}" for skill in self.skills]
+            skill_blocks = []
+            for skill in self.skills:
+                block = f"## {skill.name}"
+                if skill.description:
+                    block += f"\n{skill.description}"
+                block += f"\n{skill.instructions}"
+                skill_blocks.append(block)
             parts.append("\n\n".join(skill_blocks))
         if self.toolkits:
             toolkit_blocks = [

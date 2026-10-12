@@ -47,6 +47,55 @@ def test_no_skill_no_injection() -> None:
     assert agent.get_system_prompt() is None or "##" not in agent.get_system_prompt()
 
 
+def test_skill_description_injected() -> None:
+    skill = Skill(
+        name="sql-review",
+        description="Use for SQL query reviews.",
+        instructions="Check indexes and joins.",
+    )
+    agent = make_agent(FakeModel())
+    agent.skills = [skill]
+
+    prompt = agent.get_system_prompt()
+
+    assert "## sql-review" in prompt
+    assert "Use for SQL query reviews." in prompt
+
+
+def test_skill_tools_merged_into_agent_tools() -> None:
+    @tool
+    def find_clause(term: str) -> str:
+        """Find a contract clause."""
+        return f"clause {term}"
+
+    skill = Skill(name="legal-review", instructions="Flag risks.", tools=[find_clause])
+    agent = make_agent(FakeModel())
+    agent.skills = [skill]
+
+    names = [t.name for t in agent._all_tools()]  # noqa: SLF001
+
+    assert "find_clause" in names
+    # the skill's tool is executable through the agent
+    assert agent._tool_map()["find_clause"].call({"term": "termination"}) == "clause termination"  # noqa: SLF001
+
+
+def test_skill_tools_and_own_tools_coexist() -> None:
+    @tool
+    def lookup(term: str) -> str:
+        """Look up a term."""
+        return f"found {term}"
+
+    skill_tool = tool(lambda x: f"skill {x}", name="skill_fn")
+    agent = make_agent(FakeModel())
+    agent.tools = [lookup]
+    agent.skills = [Skill(name="s", instructions="i", tools=[skill_tool])]
+
+    names = [t.name for t in agent._all_tools()]  # noqa: SLF001
+
+    # own tools come first, then skill tools, then the built-in state tools
+    assert names[:2] == ["lookup", "skill_fn"]
+
+
 def test_transfer_tools_built_from_team() -> None:
     member = Agent(name="researcher", model=FakeModel())
     lead = Agent(name="lead", model=FakeModel(), team=[member])

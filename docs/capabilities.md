@@ -222,9 +222,16 @@ scheduler.remove_job(job_id)
 ```python
 from fakzed import Skill
 
+@tool
+def search_case_law(keyword: str) -> str:
+    """在判例库中搜索关键词。"""
+    ...
+
 skill = Skill(
-    name="code-review",
-    instructions="你是资深代码评审员……",
+    name="legal-review",
+    description="审查合同时启用",
+    instructions="你是资深合同评审员……",
+    tools=[search_case_law],  # 技能自带工具，挂载后自动生效
 )
-agent = Agent(model=..., skills=[skill])  # 技能指令按需注入
+agent = Agent(model=..., skills=[skill])  # 指令 + 工具一并注入
 ```
