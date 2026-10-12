@@ -35,9 +35,11 @@ jobs:
           done
 
       - name: Build distributions
+        # --out-dir is required: uv build --package in a workspace root
+        # otherwise emits everything into the root dist/ directory.
         run: |
-          uv build --package fakzed
-          uv build --package fakzed-server
+          uv build --package fakzed --out-dir libs/fakzed/dist
+          uv build --package fakzed-server --out-dir libs/fakzed-server/dist
 
       # Requires PyPI trusted publishing to be configured for both projects
       # (https://docs.pypi.org/trusted-publishers/). No token is stored here.
