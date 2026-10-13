@@ -53,6 +53,10 @@ scripts/           # 演示与冒烟脚本（team_demo / workflow_demo / server_
 uv add fakzed            # 或 pip install fakzed
 uv add fakzed[deepseek]  # 需要 DeepSeek 时
 
+# 国内网络直连 PyPI 慢？指定清华镜像：
+uv add fakzed --index-url https://pypi.tuna.tsinghua.edu.cn/simple
+pip install fakzed -i https://pypi.tuna.tsinghua.edu.cn/simple
+
 # 2. 设置 API Key（以 DeepSeek 为例，也支持 OPENAI_API_KEY 等）
 $env:DEEPSEEK_API_KEY = "sk-..."
 

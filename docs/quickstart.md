@@ -10,6 +10,10 @@ uv add fakzed
 
 # pip 用户
 pip install fakzed
+
+# 国内网络直连 PyPI 慢？指定清华镜像：
+uv add fakzed --index-url https://pypi.tuna.tsinghua.edu.cn/simple
+pip install fakzed -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 模型适配器按需安装，均为可选依赖：
