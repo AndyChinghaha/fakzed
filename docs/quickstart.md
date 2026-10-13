@@ -2,21 +2,21 @@
 
 ## 1. 安装
 
-fakzed 以 uv workspace 组织，SDK 包名是 `fakzed`：
+SDK 包名是 `fakzed`。推荐用 uv（并行下载，实测比 pip 快约 5 倍）：
 
 ```bash
-# uv 用户
-uv add fakzed
-
-# pip 用户
-pip install fakzed
-
-# 国内网络直连 PyPI 慢？指定清华镜像：
-uv add fakzed --index-url https://pypi.tuna.tsinghua.edu.cn/simple
-pip install fakzed -i https://pypi.tuna.tsinghua.edu.cn/simple
+uv add fakzed            # uv 用户
+pip install fakzed       # pip 用户
 ```
 
-模型适配器按需安装，均为可选依赖：
+**国内网络直连 PyPI 会卡住**，安装时请加镜像源（复制即用，实测冷启动约 10 秒）：
+
+```bash
+uv add fakzed --index-url https://mirrors.cloud.tencent.com/pypi/simple
+pip install fakzed -i https://mirrors.cloud.tencent.com/pypi/simple
+```
+
+模型适配器按需安装，均为可选依赖（同样支持 `--index-url` 镜像参数）：
 
 ```bash
 uv add "fakzed[deepseek]"    # DeepSeek（一等支持）

@@ -14,6 +14,10 @@ A lightweight Python framework for building agent platforms.
 ```bash
 uv add fakzed            # or: pip install fakzed
 uv add fakzed[deepseek]  # provider extras: openai / anthropic / ollama / deepseek / sqlite
+
+# China users: add a mirror if direct PyPI access stalls (copy-paste ready)
+uv add fakzed --index-url https://mirrors.cloud.tencent.com/pypi/simple
+pip install fakzed -i https://mirrors.cloud.tencent.com/pypi/simple
 ```
 
 ```python

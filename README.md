@@ -49,13 +49,14 @@ scripts/           # 演示与冒烟脚本（team_demo / workflow_demo / server_
 ## 快速开始
 
 ```bash
-# 1. 安装
-uv add fakzed            # 或 pip install fakzed
-uv add fakzed[deepseek]  # 需要 DeepSeek 时
+# 1. 安装（推荐 uv：并行下载，实测比 pip 快约 5 倍）
+uv add fakzed            # uv 用户
+pip install fakzed       # pip 用户
+uv add fakzed[deepseek]  # 需要 DeepSeek 时（openai / anthropic / ollama 同理）
 
-# 国内网络直连 PyPI 慢？指定清华镜像：
-uv add fakzed --index-url https://pypi.tuna.tsinghua.edu.cn/simple
-pip install fakzed -i https://pypi.tuna.tsinghua.edu.cn/simple
+# 国内网络直连 PyPI 会卡住，加镜像即可（复制即用）：
+uv add fakzed --index-url https://mirrors.cloud.tencent.com/pypi/simple
+pip install fakzed -i https://mirrors.cloud.tencent.com/pypi/simple
 
 # 2. 设置 API Key（以 DeepSeek 为例，也支持 OPENAI_API_KEY 等）
 $env:DEEPSEEK_API_KEY = "sk-..."

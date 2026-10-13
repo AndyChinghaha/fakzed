@@ -12,6 +12,9 @@ The fakzed platform server: register agents once, call them from anywhere.
 ```bash
 uv add fakzed-server   # or: pip install fakzed-server
 
+# China users: add a mirror if direct PyPI access stalls (copy-paste ready)
+uv add fakzed-server --index-url https://mirrors.cloud.tencent.com/pypi/simple
+
 fakzed-server --host 0.0.0.0 --port 8000 --admin-key <bootstrap-key>
 ```
 
